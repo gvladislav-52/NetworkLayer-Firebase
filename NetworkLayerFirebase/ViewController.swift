@@ -1,17 +1,9 @@
 import UIKit
-import FirebaseFirestore
-import FirebaseAuth
 
 class ViewController: UIViewController {
     
-    let db = Firestore.firestore()  // Initialize Firestore
+    private let firebaseService = FirebaseService()
     
-    // Token to verify user authentication
-    var userToken: String? {
-        print(Auth.auth().currentUser?.uid)
-        return Auth.auth().currentUser?.uid
-    }
-
     // Email and Password Text Fields
     lazy var emailTextField: UITextField = {
         let textField = UITextField()
@@ -36,12 +28,20 @@ class ViewController: UIViewController {
     lazy var readButton: UIButton = createButton(title: "Read Documents", backgroundColor: .purple, action: #selector(fetchDocumentsAction))
     lazy var updateButton: UIButton = createButton(title: "Update Document", backgroundColor: .magenta, action: #selector(updateDocumentAction))
     lazy var deleteButton: UIButton = createButton(title: "Delete Document", backgroundColor: .red, action: #selector(deleteDocumentAction))
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         addSubviews()
         addConstraints()
+    }
+    
+    func createButton(title: String, backgroundColor: UIColor, action: Selector) -> UIButton {
+        let button = UIButton()
+        button.backgroundColor = backgroundColor
+        button.setTitle(title, for: .normal)
+        button.addTarget(self, action: action, for: .touchUpInside)
+        return button
     }
     
     func addSubviews() {
@@ -108,117 +108,83 @@ class ViewController: UIViewController {
         ])
     }
     
-    func createButton(title: String, backgroundColor: UIColor, action: Selector) -> UIButton {
-        let button = UIButton()
-        button.backgroundColor = backgroundColor
-        button.setTitle(title, for: .normal)
-        button.addTarget(self, action: action, for: .touchUpInside)
-        return button
-    }
-    
-    // Button Actions
-    @objc func createDocumentAction() {
-        guard isUserAuthenticated() else { return }
-        let data: [String: Any] = ["name": "Test User", "age": 30]
-        createDocument(collection: "users", data: data)
-    }
-    
-    @objc func fetchDocumentsAction() {
-        guard isUserAuthenticated() else { return }
-        fetchDocuments(collection: "users")
-    }
-    
-    @objc func updateDocumentAction() {
-        guard isUserAuthenticated() else { return }
-        let documentID = "document-id" // Replace with a valid document ID
-        let data: [String: Any] = ["name": "Updated User"]
-        updateDocument(collection: "users", documentID: documentID, data: data)
-    }
-    
-    @objc func deleteDocumentAction() {
-        guard isUserAuthenticated() else { return }
-        let documentID = "document-id" // Replace with a valid document ID
-        deleteDocument(collection: "users", documentID: documentID)
-    }
+    // MARK: - Button Actions
     
     @objc func loginUser() {
         guard let email = emailTextField.text, let password = passwordTextField.text else { return }
-        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
-            if let error = error {
-                print("Error logging in: \(error)")
-                return
+        firebaseService.loginUser(email: email, password: password) { result in
+            switch result {
+            case .success:
+                print("User logged in successfully.")
+            case .failure(let error):
+                print("Login failed: \(error)")
             }
-            print("User logged in successfully.")
         }
     }
     
     @objc func registerUser() {
         guard let email = emailTextField.text, let password = passwordTextField.text else { return }
-        Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
-            if let error = error {
-                print("Error registering: \(error)")
-                return
+        firebaseService.registerUser(email: email, password: password) { result in
+            switch result {
+            case .success:
+                print("User registered successfully.")
+            case .failure(let error):
+                print("Registration failed: \(error)")
             }
-            print("User registered successfully.")
         }
     }
     
-    func isUserAuthenticated() -> Bool {
-        if let _ = userToken {
-            return true
-        } else {
-            print("User not authenticated. Please log in or register.")
-            return false
+    @objc func createDocumentAction() {
+        guard firebaseService.isUserAuthenticated() else { return }
+        let data: [String: Any] = ["name": "Test User", "age": 30]
+        firebaseService.createDocument(collection: "users", data: data) { result in
+            switch result {
+            case .success:
+                print("Document created successfully.")
+            case .failure(let error):
+                print("Error creating document: \(error)")
+            }
         }
     }
     
-    // Firestore CRUD Methods
-
-        // POST Method (Create a document)
-        func createDocument(collection: String, data: [String: Any]) {
-            db.collection(collection).addDocument(data: data) { error in
-                if let error = error {
-                    print("Error creating document: \(error)")
-                } else {
-                    print("Document successfully created!")
-                }
-            }
-        }
-        
-        // GET Method (Retrieve documents)
-        func fetchDocuments(collection: String) {
-            db.collection(collection).getDocuments { snapshot, error in
-                if let error = error {
-                    print("Error fetching documents: \(error)")
-                    return
-                }
-                guard let documents = snapshot?.documents else { return }
+    @objc func fetchDocumentsAction() {
+        guard firebaseService.isUserAuthenticated() else { return }
+        firebaseService.fetchDocuments(collection: "users") { result in
+            switch result {
+            case .success(let documents):
                 for document in documents {
                     print("Document ID: \(document.documentID), Data: \(document.data())")
                 }
+            case .failure(let error):
+                print("Error fetching documents: \(error)")
             }
         }
-        
-        // PUT Method (Update a document)
-        func updateDocument(collection: String, documentID: String, data: [String: Any]) {
-            db.collection(collection).document(documentID).updateData(data) { error in
-                if let error = error {
-                    print("Error updating document: \(error)")
-                } else {
-                    print("Document successfully updated!")
-                }
+    }
+    
+    @objc func updateDocumentAction() {
+        guard firebaseService.isUserAuthenticated() else { return }
+        let documentID = "document-id" // Replace with a valid document ID
+        let data: [String: Any] = ["name": "Updated User"]
+        firebaseService.updateDocument(collection: "users", documentID: documentID, data: data) { result in
+            switch result {
+            case .success:
+                print("Document updated successfully.")
+            case .failure(let error):
+                print("Error updating document: \(error)")
             }
         }
-        
-        // DELETE Method (Delete a document)
-        func deleteDocument(collection: String, documentID: String) {
-            db.collection(collection).document(documentID).delete() { error in
-                if let error = error {
-                    print("Error deleting document: \(error)")
-                } else {
-                    print("Document successfully deleted!")
-                }
+    }
+    
+    @objc func deleteDocumentAction() {
+        guard firebaseService.isUserAuthenticated() else { return }
+        let documentID = "document-id" // Replace with a valid document ID
+        firebaseService.deleteDocument(collection: "users", documentID: documentID) { result in
+            switch result {
+            case .success:
+                print("Document deleted successfully.")
+            case .failure(let error):
+                print("Error deleting document: \(error)")
             }
         }
-
+    }
 }
