@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		66B1CD172CEB7503007C738D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B1CD162CEB7503007C738D /* AppDelegate.swift */; };
 		66B1CD192CEB7503007C738D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B1CD182CEB7503007C738D /* SceneDelegate.swift */; };
-		66B1CD1B2CEB7503007C738D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B1CD1A2CEB7503007C738D /* ViewController.swift */; };
 		66B1CD202CEB7504007C738D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66B1CD1F2CEB7504007C738D /* Assets.xcassets */; };
 		66B1CD232CEB7504007C738D /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 66B1CD222CEB7504007C738D /* Base */; };
 		66B1CD2C2CEB771A007C738D /* WebManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B1CD2B2CEB771A007C738D /* WebManager.swift */; };
@@ -44,7 +43,6 @@
 		66B1CD132CEB7503007C738D /* NetworkLayerFirebase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NetworkLayerFirebase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B1CD162CEB7503007C738D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		66B1CD182CEB7503007C738D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		66B1CD1A2CEB7503007C738D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		66B1CD1F2CEB7504007C738D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		66B1CD222CEB7504007C738D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		66B1CD242CEB7504007C738D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -109,7 +107,6 @@
 				66B1CD4E2CEB7C41007C738D /* GoogleService-Info.plist */,
 				66B1CD162CEB7503007C738D /* AppDelegate.swift */,
 				66B1CD182CEB7503007C738D /* SceneDelegate.swift */,
-				66B1CD1A2CEB7503007C738D /* ViewController.swift */,
 				66B1CD512CEF5379007C738D /* Test */,
 				66B1CD2A2CEB76DC007C738D /* NetworkLayer */,
 				66B1CD1F2CEB7504007C738D /* Assets.xcassets */,
@@ -237,7 +234,6 @@
 			files = (
 				66B1CD2C2CEB771A007C738D /* WebManager.swift in Sources */,
 				66B1CD322CEB7736007C738D /* Service.swift in Sources */,
-				66B1CD1B2CEB7503007C738D /* ViewController.swift in Sources */,
 				66B1CD402CEB77BA007C738D /* Environment.swift in Sources */,
 				66B1CD172CEB7503007C738D /* AppDelegate.swift in Sources */,
 				66B1CD3A2CEB7772007C738D /* Request.swift in Sources */,

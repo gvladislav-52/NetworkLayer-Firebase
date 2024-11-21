@@ -21,7 +21,7 @@ protocol TestMVPDisplayLogic: AnyObject {
 final class TestMVPViewController: UIViewController {
     // swiftlint:disable:next implicitly_unwrapped_optional
     var presenter: TestMVPPresentationLogic!
-
+    
     private(set) var context: TestMVPFactory.Context = nil
 
     lazy var contentView: DisplaysTestMVP = TestMVPView()
@@ -73,30 +73,52 @@ extension TestMVPViewController: DismissibleWithRuntimeStorage {
 
 extension TestMVPViewController: TestMVPViewDelegate {
     func testViewDidTapAuthorization(_ view: TestMVPView) {
-        print("Auth")
+
     }
     
     func testViewDidTapRegistration(_ view: TestMVPView) {
-        print("Reg")
+        
     }
     
     func testViewDidTapGet(_ view: TestMVPView) {
-        print("Get")
-    }
+        WebManager.shared.fetchData(collection: "users") { [weak self] userInfos in
+               guard let self = self else { return }
+               
+               for userInfo in userInfos {
+                   if let name = userInfo["name"] as? String {
+                       print("Name: \(name)")
+                   }
+                   
+                   if let age = userInfo["age"] as? String {
+                       print("Age: \(age)")
+                   }
+                   
+                   if let email = userInfo["email"] as? String {
+                       print("Email: \(email)")
+                   }
+               }
+           }
+       }
     
     func testViewDidTapPost(_ view: TestMVPView) {
-        print("Post")
+
     }
     
     func testViewDidTapPut(_ view: TestMVPView) {
-        print("Put")
+
     }
     
     func testViewDidTapDelete(_ view: TestMVPView) {
-        print("Del")
+
     }
-    
 }
 
+
 private extension TestMVPViewController {
+}
+
+struct User: Decodable {
+    let id: String
+    let name: String
+    let email: String
 }

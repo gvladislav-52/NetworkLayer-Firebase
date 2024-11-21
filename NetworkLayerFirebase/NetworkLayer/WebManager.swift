@@ -1,80 +1,85 @@
 import Foundation
-import FirebaseFirestore
-import FirebaseAuth
 
-class FirebaseService {
+protocol WebManagerProtocol {
+    func fetchData(collection: String, completion: @escaping ([[String: Any]]) -> Void)
+}
+
+final class WebManager: WebManagerProtocol {
     
-    private let db = Firestore.firestore()
+    static let shared = WebManager()
+    private let projectId = "myreportal"
     
-    // MARK: - Authentication
-    
-    func loginUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        Auth.auth().signIn(withEmail: email, password: password) { _, error in
+    func fetchData(collection: String, completion: @escaping ([[String: Any]]) -> Void) {
+        guard let url = templateEnvironment(collection) else {
+            print("Invalid URL")
+            completion([])
+            return
+        }
+        
+        fetchDataFromURL(from: url) { data, error in
             if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
+                print("Error: \(error.localizedDescription)")
+                completion([])
+                return
             }
+            
+            guard let data = data else {
+                print("No data received")
+                completion([])
+                return
+            }
+            
+            let parsedData = self.parseResponse(data)
+            completion(parsedData)
         }
     }
+}
+
+private extension WebManager {
+    func templateEnvironment(_ collection: String) -> URL? {
+        return URL(string: "https://firestore.googleapis.com/v1/projects/\(projectId)/databases/(default)/documents/\(collection)")
+    }
     
-    func registerUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        Auth.auth().createUser(withEmail: email, password: password) { _, error in
-            if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
-            }
+    func fetchDataFromURL(from url: URL, completion: @escaping (Data?, Error?) -> Void) {
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            completion(data, error)
         }
+        task.resume()
     }
     
-    var currentUserToken: String? {
-        return Auth.auth().currentUser?.uid
-    }
-    
-    func isUserAuthenticated() -> Bool {
-        return currentUserToken != nil
-    }
-    
-    // MARK: - Firestore CRUD
-    
-    func createDocument(collection: String, data: [String: Any], completion: @escaping (Result<Void, Error>) -> Void) {
-        db.collection(collection).addDocument(data: data) { error in
-            if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
+    func parseResponse(_ data: Data) -> [[String: Any]] {
+        var allUserInfo: [[String: Any]] = []
+        
+        do {
+            if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+               let documents = jsonResponse["documents"] as? [[String: Any]] {
+                for document in documents {
+                    if let fields = document["fields"] as? [String: Any] {
+                        var userInfo: [String: Any] = [:]
+                        
+                        userInfo["name"] = extractValue(from: fields, forKey: "name")
+                        userInfo["age"] = extractValue(from: fields, forKey: "age")
+                        userInfo["email"] = extractValue(from: fields, forKey: "email")
+                        
+                        if !userInfo.isEmpty {
+                            allUserInfo.append(userInfo)
+                        }
+                    }
+                }
             }
+        } catch {
+            print("Error parsing response: \(error.localizedDescription)")
         }
+        
+        return allUserInfo
     }
     
-    func fetchDocuments(collection: String, completion: @escaping (Result<[QueryDocumentSnapshot], Error>) -> Void) {
-        db.collection(collection).getDocuments { snapshot, error in
-            if let error = error {
-                completion(.failure(error))
-            } else if let documents = snapshot?.documents {
-                completion(.success(documents))
-            }
+    func extractValue(from fields: [String: Any], forKey key: String) -> Any? {
+        if let field = fields[key] as? [String: Any], let fieldValue = field["stringValue"] as? String {
+            return fieldValue
+        } else if let field = fields[key] as? [String: Any], let fieldValue = field["integerValue"] as? String {
+            return fieldValue
         }
-    }
-    
-    func updateDocument(collection: String, documentID: String, data: [String: Any], completion: @escaping (Result<Void, Error>) -> Void) {
-        db.collection(collection).document(documentID).updateData(data) { error in
-            if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
-            }
-        }
-    }
-    
-    func deleteDocument(collection: String, documentID: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        db.collection(collection).document(documentID).delete { error in
-            if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
-            }
-        }
+        return nil
     }
 }
