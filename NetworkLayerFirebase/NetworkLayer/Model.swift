@@ -6,4 +6,9 @@
 //
 
 import Foundation
-//sdfsdf
+
+struct UserInfo {   //временно тут
+    let name: String
+    let age: String
+    let email: String
+}

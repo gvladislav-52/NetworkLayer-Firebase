@@ -43,7 +43,6 @@ final class TestMVPViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-       // presenter.presentUseCase(with: TestMVPDataFlow.UseCase.Request())
     }
 }
 
@@ -81,24 +80,17 @@ extension TestMVPViewController: TestMVPViewDelegate {
     }
     
     func testViewDidTapGet(_ view: TestMVPView) {
-        WebManager.shared.fetchData(collection: "users") { [weak self] userInfos in
-               guard let self = self else { return }
-               
-               for userInfo in userInfos {
-                   if let name = userInfo["name"] as? String {
-                       print("Name: \(name)")
-                   }
-                   
-                   if let age = userInfo["age"] as? String {
-                       print("Age: \(age)")
-                   }
-                   
-                   if let email = userInfo["email"] as? String {
-                       print("Email: \(email)")
-                   }
-               }
-           }
-       }
+        WebManager.shared.fetchData() { [weak self] userInfos in
+            guard let self = self else { return }
+            print("-------------------------")
+            for userInfo in userInfos {
+                print("Name: \(userInfo.name)")
+                print("Age: \(userInfo.age)")
+                print("Email: \(userInfo.email)")
+                print("-------------------------")
+            }
+        }
+    }
     
     func testViewDidTapPost(_ view: TestMVPView) {
 
@@ -115,10 +107,4 @@ extension TestMVPViewController: TestMVPViewDelegate {
 
 
 private extension TestMVPViewController {
-}
-
-struct User: Decodable {
-    let id: String
-    let name: String
-    let email: String
 }
