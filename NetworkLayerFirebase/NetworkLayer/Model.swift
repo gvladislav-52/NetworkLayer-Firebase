@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UserInfo {   //временно тут
+struct UserInfo: Decodable {   //временно тут
     let name: String
     let age: String
     let email: String

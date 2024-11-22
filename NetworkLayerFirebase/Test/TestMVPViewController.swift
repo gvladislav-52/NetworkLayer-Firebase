@@ -93,7 +93,14 @@ extension TestMVPViewController: TestMVPViewDelegate {
         }
     
     func testViewDidTapPost(_ view: TestMVPView) {
-
+        Task {
+            let isSuccess = await WebManager.shared.createUser(name: "Vladislav", age: "333", email: "vlad@mail.ru")
+            if isSuccess {
+                print("User created successfully!")
+            } else {
+                print("Failed to create user.")
+            }
+        }
         }
     
     func testViewDidTapPut(_ view: TestMVPView) {

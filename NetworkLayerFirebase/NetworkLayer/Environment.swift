@@ -22,14 +22,7 @@ struct Environment {
 
 enum APIEndpoint {
     case fetchUsers
-    case createUser(name: String, age: Int)
-    
-    var path: String {
-        switch self {
-        case .fetchUsers: return "/users"
-        case .createUser: return "/users/create"
-        }
-    }
+    case createUser(name: String, age: String, email: String)
     
     var method: HTTPMethod {
         switch self {
@@ -44,10 +37,18 @@ enum APIEndpoint {
     
     var body: Data? {
         switch self {
-        case .fetchUsers: return nil
-        case .createUser(let name, let age):
-            let payload = ["name": name, "age": age] as [String : Any]
+        case .fetchUsers:
+            return nil
+        case .createUser(let name, let age, let email):
+            let payload: [String: Any] = [
+                "fields": [
+                    "name": ["stringValue": name],
+                    "age": ["stringValue": "\(age)"],
+                    "email": ["stringValue": "\(email)"]
+                ]
+            ]
             return try? JSONSerialization.data(withJSONObject: payload)
         }
     }
+
 }
