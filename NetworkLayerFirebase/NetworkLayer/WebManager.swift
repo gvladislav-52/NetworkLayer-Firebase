@@ -1,4 +1,3 @@
-
 import Foundation
 
 protocol WebManagerProtocol {
@@ -6,31 +5,24 @@ protocol WebManagerProtocol {
     func createUser(name: String, age: String, email: String) async -> Bool
 }
 
-final class WebManager: WebManagerProtocol {
+struct WebManager: WebManagerProtocol {
     static let shared = WebManager()
-    private let requestFactory: RequestFactoryProtocol
-    
-    init() { self.requestFactory = RequestFactory() }
+    private let requestFactory: RequestFactoryProtocol = RequestFactory()
+    private var jsonParser = JSONParser()
+    private let environment = Environment()
     
     func fetchData() async -> [UserInfo] {
-        return await performRequest(endpoint: .fetchUsers) { data in
-            return self.parseArrayResponse(data, mapFields: { fields in
-                guard let name = self.extractValue(from: fields, forKey: "name") as? String,
-                      let age = self.extractValue(from: fields, forKey: "age") as? String,
-                      let email = self.extractValue(from: fields, forKey: "email") as? String else {
-                    return nil
-                }
-                return UserInfo(name: name, age: age, email: email)
-            })
-        } ?? []
+        return await performRequest(endpoint: .fetchUsers, parse: parseUserInfoResponse) ?? []
     }
     
     func createUser(name: String, age: String, email: String) async -> Bool {
-        return await requestFactory.performPostRequest(endpoint: .createUser(name: name, age: age, email: email))
+        return await performPostRequest(endpoint: .createUser(name: name, age: age, email: email))
     }
-    
-    private func performRequest<T>(endpoint: APIEndpoint, parse: (Data) -> T?) async -> T? {
-        guard let request = requestFactory.createRequest(for: endpoint) else {
+}
+
+private extension WebManager {
+    func performRequest<T>(endpoint: APIEndpoint, parse: @escaping (Data) -> T?) async -> T? {
+        guard let request = requestFactory.createRequest(for: endpoint, environment: environment) else {
             print("Invalid Request")
             return nil
         }
@@ -39,40 +31,54 @@ final class WebManager: WebManagerProtocol {
             let data = try await fetchDataFromRequest(request.toURLRequest())
             return parse(data)
         } catch {
-            print("Error: \(error.localizedDescription)")
+            print("Request Error: \(error.localizedDescription)")
             return nil
         }
     }
     
-    private func fetchDataFromRequest(_ urlRequest: URLRequest) async throws -> Data {
+    func fetchDataFromRequest(_ urlRequest: URLRequest) async throws -> Data {
         let (data, _) = try await URLSession.shared.data(for: urlRequest)
         return data
     }
     
-    private func parseArrayResponse<T>(_ data: Data, mapFields: ([String: Any]) -> T?) -> [T] {
-        var items: [T] = []
+    func performPostRequest(endpoint: APIEndpoint) async -> Bool {
+        guard let request = requestFactory.createRequest(for: endpoint, environment: environment) else {
+            print("Invalid Request")
+            return false
+        }
         
         do {
-            if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-               let documents = jsonResponse["documents"] as? [[String: Any]] {
-                for document in documents {
-                    if let fields = document["fields"] as? [String: Any],
-                       let item = mapFields(fields) {
-                        items.append(item)
-                    }
-                }
-            }
+            let (data, _) = try await URLSession.shared.data(for: request.toURLRequest())
+            return jsonParser.parseJSON(data)
         } catch {
-            print("Error parsing response: \(error.localizedDescription)")
+            print("Request Error: \(error.localizedDescription)")
+            return false
         }
-        
-        return items
     }
     
-    private func extractValue(from fields: [String: Any], forKey key: String) -> Any? {
-        if let field = fields[key] as? [String: Any] {
-            return field["stringValue"] ?? field["integerValue"]
+    func parseUserInfoResponse(_ data: Data) -> [UserInfo]? {
+        guard let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let documents = jsonResponse["documents"] as? [[String: Any]] else {
+            return nil
         }
-        return nil
+        
+        return documents.compactMap { document in
+            guard let fields = document["fields"] as? [String: Any] else { return nil }
+            return mapUserInfo(fields: fields)
+        }
+    }
+    
+    func mapUserInfo(fields: [String: Any]) -> UserInfo? {
+        guard let name = extractValue(from: fields, forKey: "name") as? String,
+              let age = extractValue(from: fields, forKey: "age") as? String,
+              let email = extractValue(from: fields, forKey: "email") as? String else {
+            return nil
+        }
+        return UserInfo(name: name, age: age, email: email)
+    }
+    
+    func extractValue(from fields: [String: Any], forKey key: String) -> Any? {
+        return (fields[key] as? [String: Any])?["stringValue"] ??
+               (fields[key] as? [String: Any])?["integerValue"]
     }
 }
