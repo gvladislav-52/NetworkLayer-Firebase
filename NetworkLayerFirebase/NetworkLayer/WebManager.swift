@@ -1,9 +1,7 @@
 import Foundation
 
-import Foundation
-
 protocol WebManagerProtocol {
-    func fetchData(completion: @escaping ([UserInfo]) -> Void)
+    func fetchData() async -> [UserInfo]
 }
 
 final class WebManager: WebManagerProtocol {
@@ -14,54 +12,39 @@ final class WebManager: WebManagerProtocol {
         self.requestFactory = requestFactory
     }
     
-    func fetchData(completion: @escaping ([UserInfo]) -> Void) {
+    func fetchData() async -> [UserInfo] {
         guard let request = requestFactory.createRequest(for: .fetchUsers) else {
-            print("Invalid URLRequest")
-            completion([])
-            return
+            print("Invalid Request")
+            return []
         }
         
-        fetchDataFromRequest(request) { data, error in
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
-                completion([])
-                return
-            }
-            
-            guard let data = data else {
-                print("No data received")
-                completion([])
-                return
-            }
-            
-            let parsedData = self.parseResponse(data)
-            completion(parsedData)
+        do {
+            let data = try await fetchDataFromRequest(request.toURLRequest())
+            return parseResponse(data)
+        } catch {
+            print("Error: \(error.localizedDescription)")
+            return []
         }
-    }
-}
-
-private extension WebManager {
-    func fetchDataFromRequest(_ request: URLRequest, completion: @escaping (Data?, Error?) -> Void) {
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            completion(data, error)
-        }
-        task.resume()
     }
     
-    func parseResponse(_ data: Data) -> [UserInfo] {
+    private func fetchDataFromRequest(_ urlRequest: URLRequest) async throws -> Data {
+        let (data, _) = try await URLSession.shared.data(for: urlRequest)
+        return data
+    }
+    
+    private func parseResponse(_ data: Data) -> [UserInfo] {
         var userInfos: [UserInfo] = []
         
         do {
             if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                let documents = jsonResponse["documents"] as? [[String: Any]] {
                 for document in documents {
-                    if let fields = document["fields"] as? [String: Any] {
-                        if let name = extractValue(from: fields, forKey: "name") as? String,
-                           let age = extractValue(from: fields, forKey: "age") as? String,
-                           let email = extractValue(from: fields, forKey: "email") as? String {
-                            let userInfo = UserInfo(name: name, age: age, email: email)
-                            userInfos.append(userInfo)
-                        }
+                    if let fields = document["fields"] as? [String: Any],
+                       let name = extractValue(from: fields, forKey: "name") as? String,
+                       let age = extractValue(from: fields, forKey: "age") as? String,
+                       let email = extractValue(from: fields, forKey: "email") as? String {
+                        let userInfo = UserInfo(name: name, age: age, email: email)
+                        userInfos.append(userInfo)
                     }
                 }
             }
@@ -72,7 +55,7 @@ private extension WebManager {
         return userInfos
     }
     
-    func extractValue(from fields: [String: Any], forKey key: String) -> Any? {
+    private func extractValue(from fields: [String: Any], forKey key: String) -> Any? {
         if let field = fields[key] as? [String: Any], let fieldValue = field["stringValue"] as? String {
             return fieldValue
         } else if let field = fields[key] as? [String: Any], let fieldValue = field["integerValue"] as? String {

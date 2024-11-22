@@ -8,7 +8,7 @@
 import Foundation
 
 protocol RequestFactoryProtocol {
-    func createRequest(for endpoint: APIEndpoint) -> URLRequest?
+    func createRequest(for endpoint: APIEndpoint) -> RequestProtocol?
 }
 
 final class RequestFactory: RequestFactoryProtocol {
@@ -18,17 +18,16 @@ final class RequestFactory: RequestFactoryProtocol {
         self.environment = environment
     }
     
-    func createRequest(for endpoint: APIEndpoint) -> URLRequest? {
-        guard let url = environment.url(for: endpoint) else { return nil }
+    func createRequest(for endpoint: APIEndpoint) -> RequestProtocol? {
+        guard let url = environment.url(for: endpoint) else { 
+            return nil }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = endpoint.method.rawValue
-        request.allHTTPHeaderFields = endpoint.headers
-        
-        if let body = endpoint.body {
-            request.httpBody = body
-        }
-        
-        return request
+        return Request(
+            url: url,
+            method: endpoint.method,
+            headers: endpoint.headers,
+            body: endpoint.body
+        )
     }
 }
+

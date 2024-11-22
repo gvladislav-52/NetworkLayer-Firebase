@@ -80,21 +80,21 @@ extension TestMVPViewController: TestMVPViewDelegate {
     }
     
     func testViewDidTapGet(_ view: TestMVPView) {
-        WebManager.shared.fetchData() { [weak self] userInfos in
-            guard let self = self else { return }
-            print("-------------------------")
-            for userInfo in userInfos {
-                print("Name: \(userInfo.name)")
-                print("Age: \(userInfo.age)")
-                print("Email: \(userInfo.email)")
+            Task {
+                let userInfos = await WebManager.shared.fetchData()
                 print("-------------------------")
+                for userInfo in userInfos {
+                    print("Name: \(userInfo.name)")
+                    print("Age: \(userInfo.age)")
+                    print("Email: \(userInfo.email)")
+                    print("-------------------------")
+                }
             }
         }
-    }
     
     func testViewDidTapPost(_ view: TestMVPView) {
 
-    }
+        }
     
     func testViewDidTapPut(_ view: TestMVPView) {
 
