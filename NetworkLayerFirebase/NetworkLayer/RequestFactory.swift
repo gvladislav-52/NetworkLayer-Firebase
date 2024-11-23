@@ -16,12 +16,24 @@ struct RequestFactory: RequestFactoryProtocol {
         guard let url = environment.url(for: endpoint) else {
             return nil
         }
-        switch endpoint.method {
-        case .get:
-            return Request(url: url, method: endpoint.method, headers: endpoint.headers, body: nil)
+        
+        var body: Data?
+        
+        switch endpoint {
+        case .fetchUsers:
+            body = nil
             
-        case .post, .put, .delete:
-            return Request(url: url, method: endpoint.method, headers: endpoint.headers, body: endpoint.body)
+        case .createUser(let name, let age, let email):
+            let payload: [String: Any] = [
+                "fields": [
+                    "name": ["stringValue": name],
+                    "age": ["stringValue": "\(age)"],
+                    "email": ["stringValue": "\(email)"]
+                ]
+            ]
+            body = JSONConverter.convertToJSON(data: payload)
         }
+        
+        return Request(url: url, method: endpoint.method, headers: endpoint.headers, body: body)
     }
 }

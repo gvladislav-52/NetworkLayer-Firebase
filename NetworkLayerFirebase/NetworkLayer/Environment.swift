@@ -34,21 +34,4 @@ enum APIEndpoint {
     var headers: [String: String] {
         ["Content-Type": "application/json", "Accept": "application/json"]
     }
-    
-    var body: Data? {
-        switch self {
-        case .fetchUsers:
-            return nil
-        case .createUser(let name, let age, let email):
-            let payload: [String: Any] = [
-                "fields": [
-                    "name": ["stringValue": name],
-                    "age": ["stringValue": "\(age)"],
-                    "email": ["stringValue": "\(email)"]
-                ]
-            ]
-            return try? JSONSerialization.data(withJSONObject: payload)
-        }
-    }
-
 }
