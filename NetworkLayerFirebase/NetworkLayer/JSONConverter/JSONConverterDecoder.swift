@@ -1,14 +1,14 @@
 //
-//  JSONConverter.swift
-//  reportal
+//  JSONConverterDecoder.swift
+//  NetworkLayerFirebase
 //
-//  Created by gvladislav-52 on 18.11.2024.
+//  Created by gvladislav-52 on 23.11.2024.
 //
 
 import Foundation
 
-struct JSONConverter {
-    static func convertToUserInfoArray(_ data: Data) -> [UserInfo]? {
+struct JSONConverterDecoder {
+    func convertToUserInfoArray(_ data: Data) -> [UserInfo]? {
         guard let jsonResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
               let documents = jsonResponse["documents"] as? [[String: Any]] else {
             return nil
@@ -21,17 +21,13 @@ struct JSONConverter {
             return convertToUserInfo(fields: fields)
         }
     }
-    
-    static func convertToUserInfo(fields: [String: Any]) -> UserInfo? {
+
+    func convertToUserInfo(fields: [String: Any]) -> UserInfo? {
         guard let name = (fields["name"] as? [String: Any])?["stringValue"] as? String,
               let age = (fields["age"] as? [String: Any])?["stringValue"] as? String,
               let email = (fields["email"] as? [String: Any])?["stringValue"] as? String else {
             return nil
         }
         return UserInfo(name: name, age: age, email: email)
-    }
-    
-    static func convertToJSON(data: [String: Any]) -> Data? {
-        return try? JSONSerialization.data(withJSONObject: data)
     }
 }

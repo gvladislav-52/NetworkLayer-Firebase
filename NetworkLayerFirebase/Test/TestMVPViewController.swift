@@ -23,10 +23,11 @@ final class TestMVPViewController: UIViewController {
     var presenter: TestMVPPresentationLogic!
     
     private(set) var context: TestMVPFactory.Context = nil
-
+    private let service: ServiceProtocol
     lazy var contentView: DisplaysTestMVP = TestMVPView()
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        service = Service()
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         title = "Some title"
     }
@@ -80,28 +81,25 @@ extension TestMVPViewController: TestMVPViewDelegate {
     }
     
     func testViewDidTapGet(_ view: TestMVPView) {
-            Task {
-                let userInfos = await WebManager.shared.fetchData()
-                print("-------------------------")
-                for userInfo in userInfos {
-                    print("Name: \(userInfo.name)")
-                    print("Age: \(userInfo.age)")
-                    print("Email: \(userInfo.email)")
-                    print("-------------------------")
-                }
+        Task {
+            let userInfos = await service.fetchData(method: .get)
+            for userInfo in userInfos {
+                print("Name: \(userInfo.name), Age: \(userInfo.age), Email: \(userInfo.email)")
             }
         }
-    
+    }
+
     func testViewDidTapPost(_ view: TestMVPView) {
         Task {
-            let isSuccess = await WebManager.shared.createUser(name: "Vladislav", age: "333", email: "vlad@mail.ru")
+            let userModel = UserInfo(name: "Vladislav", age: "30", email: "vlad@mail.ru")
+            let isSuccess = await service.createUser(method: .post, model: userModel)
             if isSuccess {
                 print("User created successfully!")
             } else {
                 print("Failed to create user.")
             }
         }
-        }
+    }
     
     func testViewDidTapPut(_ view: TestMVPView) {
 

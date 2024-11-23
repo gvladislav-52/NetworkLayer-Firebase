@@ -12,3 +12,4 @@ struct UserInfo {   //временно тут
     let age: String
     let email: String
 }
+
