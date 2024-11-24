@@ -1,37 +1,35 @@
-//
-//  HomeService.swift
-//  reportal
-//
-//  Created by gvladislav-52 on 18.11.2024.
-//
-
 import Foundation
 
 protocol ServiceProtocol {
-    func fetchData(method: HTTPMethod) async -> [UserInfo]
-    func createUser(method: HTTPMethod, model: UserInfo) async -> Bool
-    func updateUser(method: HTTPMethod, model: UserInfo) async -> Bool
-    func deleteUser(method: HTTPMethod, model: UserInfo) async -> Bool
+    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager>
+    func createUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager>
+    func updateUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager>
+    func deleteUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager>
 }
 
 struct Service: ServiceProtocol {
     
-    func fetchData(method: HTTPMethod) async -> [UserInfo] {
+    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager> {
         return await WebManager.shared.fetchData(method: method)
     }
     
-    func createUser(method: HTTPMethod, model: UserInfo) async -> Bool {
-        return await WebManager.shared.createUser(method: method, name: model.name, age: model.age, email: model.email)
+    func createUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager> {
+        let bodyParams: [String: Any] = [
+            "fields": [
+                "name": ["stringValue": model.name],
+                "age": ["stringValue": model.age],
+                "email": ["stringValue": model.email]
+            ]
+        ]
+        
+        return await WebManager.shared.createUser(method: method, bodyParams: bodyParams)
     }
     
-    func updateUser(method: HTTPMethod, model: UserInfo) async -> Bool {
-        true
+    func updateUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager> {
+        return .success(true)
     }
     
-    func deleteUser(method: HTTPMethod, model: UserInfo) async -> Bool {
-        true
+    func deleteUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager> {
+        return .success(true)
     }
 }
-
-
-

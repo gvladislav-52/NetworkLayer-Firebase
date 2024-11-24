@@ -1,8 +1,8 @@
 import Foundation
 
 protocol WebManagerProtocol {
-    func fetchData(method: HTTPMethod) async -> [UserInfo]
-    func createUser(method: HTTPMethod, name: String, age: String, email: String) async -> Bool
+    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager>
+    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async -> Result<Bool, ErrorManager>
 }
 
 struct WebManager: WebManagerProtocol {
@@ -11,29 +11,32 @@ struct WebManager: WebManagerProtocol {
     private let environment = Environment()
     private let jsonDecoder = JSONConverterDecoder()
     
-    func fetchData(method: HTTPMethod) async -> [UserInfo] {
-        guard let request = requestFactory.createRequest(method: method, bodyParams: nil, environment: environment),
-              let data = await performRequest(request.toURLRequest()) else {
-            return []
+    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager> {
+        guard let request = requestFactory.createRequest(method: method, bodyParams: nil, environment: environment) else {
+            return .failure(.internalError(.requestFailed))
         }
         
-        return jsonDecoder.convertToUserInfoArray(data) ?? []
+        guard let data = await performRequest(request.toURLRequest()) else {
+            return .failure(.unknownError(.requestFailed))
+        }
+        
+        if let userInfoArray = jsonDecoder.convertToUserInfoArray(data) {
+            return .success(userInfoArray)
+        } else {
+            return .failure(.backendError(.dataParsingFailed))
+        }
     }
     
-    func createUser(method: HTTPMethod, name: String, age: String, email: String) async -> Bool {
-        let bodyParams: [String: Any] = [
-            "fields": [
-                "name": ["stringValue": name],
-                "age": ["stringValue": age],
-                "email": ["stringValue": email]
-            ]
-        ]
-        
-        guard let request = requestFactory.createRequest(method: method, bodyParams: bodyParams, environment: environment),
-              let _ = await performRequest(request.toURLRequest()) else {
-            return false
+    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async -> Result<Bool, ErrorManager> {
+        guard let request = requestFactory.createRequest(method: method, bodyParams: bodyParams, environment: environment) else {
+            return .failure(.internalError(.requestFailed))
         }
-        return true
+        
+        guard let _ = await performRequest(request.toURLRequest()) else {
+            return .failure(.unknownError(.requestFailed))
+        }
+        
+        return .success(true)
     }
 }
 

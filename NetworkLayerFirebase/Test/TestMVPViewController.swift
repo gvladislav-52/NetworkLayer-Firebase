@@ -82,9 +82,15 @@ extension TestMVPViewController: TestMVPViewDelegate {
     
     func testViewDidTapGet(_ view: TestMVPView) {
         Task {
-            let userInfos = await service.fetchData(method: .get)
-            for userInfo in userInfos {
-                print("Name: \(userInfo.name), Age: \(userInfo.age), Email: \(userInfo.email)")
+            let result = await service.fetchData(method: .get)
+            
+            switch result {
+            case .success(let userInfos):
+                for userInfo in userInfos {
+                    print("Name: \(userInfo.name), Age: \(userInfo.age), Email: \(userInfo.email)")
+                }
+            case .failure(let error):
+                print("Error fetching user data: \(error.localizedDescription)")
             }
         }
     }
@@ -92,11 +98,17 @@ extension TestMVPViewController: TestMVPViewDelegate {
     func testViewDidTapPost(_ view: TestMVPView) {
         Task {
             let userModel = UserInfo(name: "Vladislav", age: "30", email: "vlad@mail.ru")
-            let isSuccess = await service.createUser(method: .post, model: userModel)
-            if isSuccess {
-                print("User created successfully!")
-            } else {
-                print("Failed to create user.")
+            let result = await service.createUser(method: .post, model: userModel)
+            
+            switch result {
+            case .success(let isSuccess):
+                if isSuccess {
+                    print("User created successfully!")
+                } else {
+                    print("Failed to create user.")
+                }
+            case .failure(let error):
+                print("Error creating user: \(error.localizedDescription)")
             }
         }
     }
