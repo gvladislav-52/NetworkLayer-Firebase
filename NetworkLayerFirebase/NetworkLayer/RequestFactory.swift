@@ -8,38 +8,19 @@
 import Foundation
 
 protocol RequestFactoryProtocol {
-    func createRequest(for endpoint: APIEndpoint, environment: Environment) -> RequestProtocol?
+    func createRequest(method: HTTPMethod, bodyParams: [String: Any]?, environment: Environment) -> RequestProtocol?
 }
 
 struct RequestFactory: RequestFactoryProtocol {
     private let jsonEncoder = JSONConverterEncoder()
     
-    func createRequest(for endpoint: APIEndpoint, environment: Environment) -> RequestProtocol? {
-        guard let url = environment.url(for: endpoint) else {
-            return nil
+    func createRequest(method: HTTPMethod, bodyParams: [String: Any]? = nil, environment: Environment) -> RequestProtocol? {
+            guard let url = environment.url() else {
+                return nil
+            }
+            
+            let body: Data? = bodyParams != nil ? jsonEncoder.convertToJSON(data: bodyParams!) : nil
+            
+            return Request(url: url, method: method, headers: ["Content-Type": "application/json", "Accept": "application/json"], body: body)
         }
-        let body: Data? = createRequestBody(for: endpoint)
-        return Request(url: url, method: endpoint.method, headers: endpoint.headers, body: body)
-    }
-    
-    private func createRequestBody(for endpoint: APIEndpoint) -> Data? {
-        switch endpoint {
-        case .fetchUsers:
-            return nil
-        
-        case .createUser(let name, let age, let email):
-            let payload = createUserPayload(name: name, age: age, email: email)
-            return jsonEncoder.convertToJSON(data: payload)
-        }
-    }
-    
-    private func createUserPayload(name: String, age: String, email: String) -> [String: Any] {
-        return [
-            "fields": [
-                "name": ["stringValue": name],
-                "age": ["stringValue": age],
-                "email": ["stringValue": email]
-            ]
-        ]
-    }
 }

@@ -12,15 +12,24 @@ struct WebManager: WebManagerProtocol {
     private let jsonDecoder = JSONConverterDecoder()
     
     func fetchData(method: HTTPMethod) async -> [UserInfo] {
-        guard let request = requestFactory.createRequest(for: .fetchUsers, environment: environment),
+        guard let request = requestFactory.createRequest(method: method, bodyParams: nil, environment: environment),
               let data = await performRequest(request.toURLRequest()) else {
             return []
         }
+        
         return jsonDecoder.convertToUserInfoArray(data) ?? []
     }
     
     func createUser(method: HTTPMethod, name: String, age: String, email: String) async -> Bool {
-        guard let request = requestFactory.createRequest(for: .createUser(name: name, age: age, email: email), environment: environment),
+        let bodyParams: [String: Any] = [
+            "fields": [
+                "name": ["stringValue": name],
+                "age": ["stringValue": age],
+                "email": ["stringValue": email]
+            ]
+        ]
+        
+        guard let request = requestFactory.createRequest(method: method, bodyParams: bodyParams, environment: environment),
               let _ = await performRequest(request.toURLRequest()) else {
             return false
         }
