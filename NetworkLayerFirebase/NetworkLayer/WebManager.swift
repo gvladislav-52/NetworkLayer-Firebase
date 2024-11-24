@@ -1,8 +1,8 @@
 import Foundation
 
 protocol WebManagerProtocol {
-    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager>
-    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async -> Result<Bool, ErrorManager>
+    func fetchData(method: HTTPMethod) async throws -> [UserInfo]
+    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async throws -> Bool
 }
 
 struct WebManager: WebManagerProtocol {
@@ -11,32 +11,32 @@ struct WebManager: WebManagerProtocol {
     private let environment = Environment()
     private let jsonDecoder = JSONConverterDecoder()
     
-    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager> {
+    func fetchData(method: HTTPMethod) async throws -> [UserInfo] {
         guard let request = requestFactory.createRequest(method: method, bodyParams: nil, environment: environment) else {
-            return .failure(.internalError(.requestFailed))
+            throw ErrorManager.internalError(.requestFailed)
         }
         
         guard let data = await performRequest(request.toURLRequest()) else {
-            return .failure(.unknownError(.requestFailed))
+            throw ErrorManager.unknownError(.requestFailed)
         }
         
         if let userInfoArray = jsonDecoder.convertToUserInfoArray(data) {
-            return .success(userInfoArray)
+            return userInfoArray
         } else {
-            return .failure(.backendError(.dataParsingFailed))
+            throw ErrorManager.backendError(.dataParsingFailed)
         }
     }
     
-    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async -> Result<Bool, ErrorManager> {
+    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async throws -> Bool {
         guard let request = requestFactory.createRequest(method: method, bodyParams: bodyParams, environment: environment) else {
-            return .failure(.internalError(.requestFailed))
+            throw ErrorManager.internalError(.requestFailed)
         }
         
         guard let _ = await performRequest(request.toURLRequest()) else {
-            return .failure(.unknownError(.requestFailed))
+            throw ErrorManager.unknownError(.requestFailed)
         }
         
-        return .success(true)
+        return true
     }
 }
 

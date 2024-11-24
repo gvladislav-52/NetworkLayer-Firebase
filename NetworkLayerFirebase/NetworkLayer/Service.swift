@@ -1,19 +1,19 @@
 import Foundation
 
 protocol ServiceProtocol {
-    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager>
-    func createUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager>
-    func updateUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager>
-    func deleteUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager>
+    func fetchData(method: HTTPMethod) async throws -> [UserInfo]
+    func createUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
+    func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
+    func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
 }
 
 struct Service: ServiceProtocol {
     
-    func fetchData(method: HTTPMethod) async -> Result<[UserInfo], ErrorManager> {
-        return await WebManager.shared.fetchData(method: method)
+    func fetchData(method: HTTPMethod) async throws -> [UserInfo] {
+        return try await WebManager.shared.fetchData(method: method)
     }
     
-    func createUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager> {
+    func createUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
         let bodyParams: [String: Any] = [
             "fields": [
                 "name": ["stringValue": model.name],
@@ -22,14 +22,14 @@ struct Service: ServiceProtocol {
             ]
         ]
         
-        return await WebManager.shared.createUser(method: method, bodyParams: bodyParams)
+        return try await WebManager.shared.createUser(method: method, bodyParams: bodyParams)
     }
     
-    func updateUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager> {
-        return .success(true)
+    func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
+        return true
     }
     
-    func deleteUser(method: HTTPMethod, model: UserInfo) async -> Result<Bool, ErrorManager> {
-        return .success(true)
+    func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
+        return true
     }
 }
