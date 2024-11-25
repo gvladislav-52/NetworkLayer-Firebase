@@ -1,24 +1,20 @@
-//
-//  JSONConverterDecoder.swift
-//  NetworkLayerFirebase
-//
-//  Created by gvladislav-52 on 23.11.2024.
-//
-
 import Foundation
 
 struct JSONConverterDecoder {
-    func convertToModelArray<T: DecodableModel>(_ data: Data) -> [T]? {
-        guard let jsonResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-              let documents = jsonResponse["documents"] as? [[String: Any]] else {
-            return nil
+    func convertToModelArray<T: Codable>(_ data: Data) throws -> [T] {
+        let decoder = JSONDecoder()
+        let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let documents = jsonResponse?["documents"] as? [[String: Any]] else {
+            throw ErrorManager.backendError(.dataParsingFailed)
         }
 
-        return documents.compactMap { document in
+        return try documents.compactMap { document in
             guard let fields = document["fields"] as? [String: Any] else {
-                return nil
+                throw ErrorManager.backendError(.dataParsingFailed)
             }
-            return T(fields: fields)
+            let convertedFields = fields.compactMapValues { ($0 as? [String: Any])?["stringValue"] as? String }
+            let jsonData = try JSONSerialization.data(withJSONObject: convertedFields)
+            return try decoder.decode(T.self, from: jsonData)
         }
     }
 }

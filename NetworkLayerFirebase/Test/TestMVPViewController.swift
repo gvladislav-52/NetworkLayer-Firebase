@@ -96,26 +96,17 @@ extension TestMVPViewController: TestMVPViewDelegate {
 
     func testViewDidTapPost(_ view: TestMVPView) {
         Task {
-            let fields: [String: Any] = [
-                "name": ["stringValue": "Vladislav"],
-                "age": ["stringValue": "30"],
-                "email": ["stringValue": "vlad@mail.ru"]
-            ]
-            
-            if let userModel = UserInfo(fields: fields) {
-                do {
-                    let isSuccess = try await service.createUser(method: .post, model: userModel)
-                    
-                    if isSuccess {
-                        print("User created successfully!")
-                    } else {
-                        print("Failed to create user.")
-                    }
-                } catch let error as NSError {
-                    print("Error creating user: \(error.localizedDescription)")
+            do {
+                let userInfo = UserInfo(name: "Vladik666", age: "10", email: "po4ta")
+                let success = try await service.createUser(method: .post, model: userInfo)
+                
+                if success {
+                    print("User successfully created")
+                } else {
+                    print("Failed to create user")
                 }
-            } else {
-                print("Failed to initialize UserInfo.")
+            } catch let error as NSError {
+                print("Error creating user: \(error.localizedDescription)")
             }
         }
     }
