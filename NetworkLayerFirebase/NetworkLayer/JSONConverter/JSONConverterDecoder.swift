@@ -1,7 +1,7 @@
 import Foundation
 
 struct JSONConverterDecoder {
-    func convertToModelArray<T: Codable>(_ data: Data) throws -> [T] {
+    func convertToModelArray<T: Decodable>(_ data: Data) throws -> [T] {
         let decoder = JSONDecoder()
         let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         guard let documents = jsonResponse?["documents"] as? [[String: Any]] else {

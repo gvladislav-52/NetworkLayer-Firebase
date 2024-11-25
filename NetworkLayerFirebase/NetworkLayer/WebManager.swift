@@ -1,18 +1,18 @@
 import Foundation
 
 protocol WebManagerProtocol {
-    func fetchData<T: Codable>(method: HTTPMethod) async throws -> [T]
-    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async throws -> Bool
+    func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T]
+    func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool
 }
 
 struct WebManager: WebManagerProtocol {
     static let shared = WebManager()
     private let requestFactory: RequestFactoryProtocol = RequestFactory()
-    private let environment = Environment()
     private let jsonDecoder = JSONConverterDecoder()
     
-    func fetchData<T: Codable>(method: HTTPMethod) async throws -> [T] {
-        guard let request = requestFactory.createRequest(method: method, bodyParams: nil, environment: environment) else {
+    
+    func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T] {
+        guard let request = requestFactory.createRequest(method: method, bodyParams: nil, url: url, header: header) else {
             throw ErrorManager.internalError(.requestFailed)
         }
         
@@ -27,8 +27,8 @@ struct WebManager: WebManagerProtocol {
     }
 
     
-    func createUser(method: HTTPMethod, bodyParams: [String: Any]) async throws -> Bool {
-        guard let request = requestFactory.createRequest(method: method, bodyParams: bodyParams, environment: environment) else {
+    func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool {
+        guard let request = requestFactory.createRequest(method: method, bodyParams: bodyParams, url: url, header: header) else {
             throw ErrorManager.internalError(.requestFailed)
         }
         

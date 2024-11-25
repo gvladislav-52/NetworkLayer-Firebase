@@ -8,8 +8,14 @@ protocol ServiceProtocol {
 }
 
 struct Service: ServiceProtocol {
+    private let environment = Environment()
+    
     func fetchData(method: HTTPMethod) async throws -> [UserInfo] {
-        return try await WebManager.shared.fetchData(method: method)
+        return try await WebManager.shared.fetchData(
+            method: method,
+            url: environment.url(),
+            header: ["Content-Type": "application/json", "Accept": "application/json"]
+        )
     }
 
     func createUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
@@ -20,8 +26,13 @@ struct Service: ServiceProtocol {
                     "email": ["stringValue": model.email]
                 ]
             ]
-            return try await WebManager.shared.createUser(method: method, bodyParams: bodyParams)
-        }
+        return try await WebManager.shared.createUser(
+            method: method,
+            bodyParams: bodyParams,
+            url: environment.url(),
+            header:["Content-Type": "application/json", "Accept": "application/json"]
+        )
+    }
     
     func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
         true

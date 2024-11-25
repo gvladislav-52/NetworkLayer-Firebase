@@ -8,19 +8,20 @@
 import Foundation
 
 protocol RequestFactoryProtocol {
-    func createRequest(method: HTTPMethod, bodyParams: [String: Any]?, environment: Environment) -> RequestProtocol?
+    func createRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String]) -> RequestProtocol?
 }
 
 struct RequestFactory: RequestFactoryProtocol {
     private let jsonEncoder = JSONConverterEncoder()
     
-    func createRequest(method: HTTPMethod, bodyParams: [String: Any]? = nil, environment: Environment) -> RequestProtocol? {
-            guard let url = environment.url() else {
-                return nil
-            }
-            
+    func createRequest(method: HTTPMethod, bodyParams: [String: Any]? = nil, url: URL, header: [String: String]) -> RequestProtocol? {
             let body: Data? = bodyParams != nil ? jsonEncoder.convertToJSON(data: bodyParams!) : nil
             
-            return Request(url: url, method: method, headers: ["Content-Type": "application/json", "Accept": "application/json"], body: body)
+            return Request(
+                url: url,
+                method: method,
+                headers: header,
+                body: body
+            )
         }
 }

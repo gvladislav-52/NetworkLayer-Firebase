@@ -10,7 +10,11 @@ import Foundation
 struct Environment {
     let baseURL = "https://firestore.googleapis.com/v1/projects/myreportal/databases/(default)/documents"
     
-    func url() -> URL? {
-        return URL(string: "\(baseURL)/users")
+    func url() -> URL {
+        guard let url = URL(string: "\(baseURL)/users") else {
+            fatalError("Invalid URL: \(baseURL)/users")
+        }
+        return url
     }
 }
+
