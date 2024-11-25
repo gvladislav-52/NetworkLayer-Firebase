@@ -8,7 +8,7 @@
 import Foundation
 
 struct JSONConverterDecoder {
-    func convertToUserInfoArray(_ data: Data) -> [UserInfo]? {
+    func convertToModelArray<T: DecodableModel>(_ data: Data) -> [T]? {
         guard let jsonResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
               let documents = jsonResponse["documents"] as? [[String: Any]] else {
             return nil
@@ -18,16 +18,7 @@ struct JSONConverterDecoder {
             guard let fields = document["fields"] as? [String: Any] else {
                 return nil
             }
-            return convertToUserInfo(fields: fields)
+            return T(fields: fields)
         }
-    }
-
-    func convertToUserInfo(fields: [String: Any]) -> UserInfo? {
-        guard let name = (fields["name"] as? [String: Any])?["stringValue"] as? String,
-              let age = (fields["age"] as? [String: Any])?["stringValue"] as? String,
-              let email = (fields["email"] as? [String: Any])?["stringValue"] as? String else {
-            return nil
-        }
-        return UserInfo(name: name, age: age, email: email)
     }
 }

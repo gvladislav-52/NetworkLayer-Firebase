@@ -1,7 +1,7 @@
 import Foundation
 
 protocol WebManagerProtocol {
-    func fetchData(method: HTTPMethod) async throws -> [UserInfo]
+    func fetchData<T: DecodableModel>(method: HTTPMethod) async throws -> [T]
     func createUser(method: HTTPMethod, bodyParams: [String: Any]) async throws -> Bool
 }
 
@@ -11,7 +11,7 @@ struct WebManager: WebManagerProtocol {
     private let environment = Environment()
     private let jsonDecoder = JSONConverterDecoder()
     
-    func fetchData(method: HTTPMethod) async throws -> [UserInfo] {
+    func fetchData<T: DecodableModel>(method: HTTPMethod) async throws -> [T] {
         guard let request = requestFactory.createRequest(method: method, bodyParams: nil, environment: environment) else {
             throw ErrorManager.internalError(.requestFailed)
         }
@@ -20,8 +20,8 @@ struct WebManager: WebManagerProtocol {
             throw ErrorManager.unknownError(.requestFailed)
         }
         
-        if let userInfoArray = jsonDecoder.convertToUserInfoArray(data) {
-            return userInfoArray
+        if let modelArray: [T] = jsonDecoder.convertToModelArray(data) {
+            return modelArray
         } else {
             throw ErrorManager.backendError(.dataParsingFailed)
         }

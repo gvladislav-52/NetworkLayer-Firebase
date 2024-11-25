@@ -84,10 +84,11 @@ extension TestMVPViewController: TestMVPViewDelegate {
         Task {
             do {
                 let userInfos = try await service.fetchData(method: .get)
+                
                 for userInfo in userInfos {
                     print("Name: \(userInfo.name), Age: \(userInfo.age), Email: \(userInfo.email)")
                 }
-            } catch {
+            } catch let error as NSError {
                 print("Error fetching user data: \(error.localizedDescription)")
             }
         }
@@ -95,21 +96,30 @@ extension TestMVPViewController: TestMVPViewDelegate {
 
     func testViewDidTapPost(_ view: TestMVPView) {
         Task {
-            let userModel = UserInfo(name: "Vladislav", age: "30", email: "vlad@mail.ru")
-            do {
-                let isSuccess = try await service.createUser(method: .post, model: userModel)
-                if isSuccess {
-                    print("User created successfully!")
-                } else {
-                    print("Failed to create user.")
+            let fields: [String: Any] = [
+                "name": ["stringValue": "Vladislav"],
+                "age": ["stringValue": "30"],
+                "email": ["stringValue": "vlad@mail.ru"]
+            ]
+            
+            if let userModel = UserInfo(fields: fields) {
+                do {
+                    let isSuccess = try await service.createUser(method: .post, model: userModel)
+                    
+                    if isSuccess {
+                        print("User created successfully!")
+                    } else {
+                        print("Failed to create user.")
+                    }
+                } catch let error as NSError {
+                    print("Error creating user: \(error.localizedDescription)")
                 }
-            } catch {
-                print("Error creating user: \(error.localizedDescription)")
+            } else {
+                print("Failed to initialize UserInfo.")
             }
         }
     }
 
-    
     func testViewDidTapPut(_ view: TestMVPView) {
 
     }
