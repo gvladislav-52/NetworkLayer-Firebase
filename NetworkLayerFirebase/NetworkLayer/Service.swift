@@ -12,6 +12,8 @@ protocol ServiceProtocol {
     func createUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
     func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
     func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
+    
+    func getAuthToken(email: String, password: String) async throws -> String
 }
 
 struct Service: ServiceProtocol {
@@ -61,4 +63,8 @@ struct Service: ServiceProtocol {
     func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
         true
     }
+    
+    func getAuthToken(email: String, password: String) async throws -> String {
+           return try await WebManager.shared.getToken(email: email, password: password)
+       }
 }

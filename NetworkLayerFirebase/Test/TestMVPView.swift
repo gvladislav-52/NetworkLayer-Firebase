@@ -123,7 +123,7 @@ final class TestMVPView: UIView {
         return button
     }()
     
-    private let loginTextField: UITextField = {
+   internal private(set) var loginTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "EmailAdress"
         textField.borderStyle = .roundedRect
@@ -131,7 +131,7 @@ final class TestMVPView: UIView {
         return textField
     }()
     
-    private let passwordTextField: UITextField = {
+    internal private(set) var passwordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Password"
         textField.borderStyle = .roundedRect

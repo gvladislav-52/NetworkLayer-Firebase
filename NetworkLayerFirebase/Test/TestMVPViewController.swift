@@ -8,7 +8,6 @@
 import UIKit
 import RouteComposer
 
-
 protocol TestMVPDisplayLogic: AnyObject {
     @MainActor
     func displayUseCaseSuccess(with viewModel: TestMVPDataFlow.UseCase.ViewModelSuccess)
@@ -73,9 +72,20 @@ extension TestMVPViewController: DismissibleWithRuntimeStorage {
 
 extension TestMVPViewController: TestMVPViewDelegate {
     func testViewDidTapAuthorization(_ view: TestMVPView) {
-
+        Task {
+            do {
+                guard let login = view.loginTextField.text,
+                      let password = view.passwordTextField.text else {
+                    return
+                }
+                let token = try await service.getAuthToken(email: login, password: password)
+                print("Авторизация успешна. Токен: \(token)")
+            } catch {
+                print("Ошибка авторизации: \(error.localizedDescription)")
+            }
+        }
     }
-    
+
     func testViewDidTapRegistration(_ view: TestMVPView) {
         
     }

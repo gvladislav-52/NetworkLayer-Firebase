@@ -23,10 +23,11 @@ struct Request: RequestProtocol {
     let body: Data?
     
     func toURLRequest() -> URLRequest {
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = method.rawValue
-        urlRequest.allHTTPHeaderFields = headers
-        urlRequest.httpBody = body
-        return urlRequest
-    }
+            var urlRequest = URLRequest(url: url)
+            urlRequest.httpMethod = method.rawValue
+            urlRequest.allHTTPHeaderFields = headers
+            urlRequest.httpBody = body
+            return urlRequest
+        }
 }
+

@@ -10,13 +10,26 @@ import Foundation
 protocol WebManagerProtocol {
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T]
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool
+    func getToken(email: String, password: String) async throws -> String
 }
 
 struct WebManager: WebManagerProtocol {
     static let shared = WebManager()
     private let requestFactory: RequestFactoryProtocol = RequestFactory()
+    private let authManager = AuthManager()
     private let jsonDecoder = JSONConverterDecoder()
     
+    func getToken(email: String, password: String) async throws -> String {
+        let url = URL(string: "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=\(authManager.apiKey)")!
+        
+        let authParameters = authManager.getAuthParameters(email: email, password: password)
+        let request = try requestFactory.createRequest(method: .post, bodyParams: authParameters, url: url, header: ["Content-Type": "application/json"])
+        
+        let data = try await performRequest(request.toURLRequest())
+        let authResponse = try JSONDecoder().decode(AuthRepository.self, from: data)
+        return authResponse.idToken
+    }
+
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T] {
         do {
             let request = try requestFactory.createRequest(method: method, bodyParams: nil, url: url, header: header)
