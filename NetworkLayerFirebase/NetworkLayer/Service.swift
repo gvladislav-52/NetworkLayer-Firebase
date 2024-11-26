@@ -13,7 +13,7 @@ protocol ServiceProtocol {
     func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
     func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
     
-    func getAuthToken(email: String, password: String) async throws -> String
+    func getAuthToken(email: String, password: String) async throws
 }
 
 struct Service: ServiceProtocol {
@@ -64,7 +64,18 @@ struct Service: ServiceProtocol {
         true
     }
     
-    func getAuthToken(email: String, password: String) async throws -> String {
-           return try await WebManager.shared.getToken(email: email, password: password)
-       }
+    func getAuthToken(email: String, password: String) async throws {
+        do {
+        return try await WebManager.shared.getToken(
+            email: email,
+            password: password,
+            url: environment.authUrl(),
+            header: ["Content-Type": "application/json"]
+        )
+        } catch let error as ErrorManager {
+            throw error
+        } catch {
+            throw ErrorManager.unknownError(.requestFailed)
+        }
+    }
 }

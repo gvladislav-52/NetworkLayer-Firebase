@@ -10,7 +10,7 @@ import Foundation
 protocol WebManagerProtocol {
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T]
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool
-    func getToken(email: String, password: String) async throws -> String
+    func getToken(email: String, password: String, url: URL, header: [String: String]) async throws
 }
 
 struct WebManager: WebManagerProtocol {
@@ -19,22 +19,27 @@ struct WebManager: WebManagerProtocol {
     private let authManager = AuthManager()
     private let jsonDecoder = JSONConverterDecoder()
     
-    func getToken(email: String, password: String) async throws -> String {
-        let url = URL(string: "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=\(authManager.apiKey)")!
-        
+    func getToken(email: String, password: String, url: URL, header: [String: String]) async throws {
         let authParameters = authManager.getAuthParameters(email: email, password: password)
-        let request = try requestFactory.createRequest(method: .post, bodyParams: authParameters, url: url, header: ["Content-Type": "application/json"])
-        
-        let data = try await performRequest(request.toURLRequest())
-        let authResponse = try JSONDecoder().decode(AuthRepository.self, from: data)
-        return authResponse.idToken
+        let request = try requestFactory.createAuthRequest(method: .post, bodyParams: authParameters, url: url, header: header)
+        if let urlRequest = request.toURLRequest() {
+            let data = try await performRequest(urlRequest)
+            let authResponse = try JSONDecoder().decode(AuthRepository.self, from: data)
+            authManager.token = authResponse.idToken
+        } else {
+            throw ErrorManager.backendError(.requestFailed)
+        }
     }
 
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T] {
         do {
-            let request = try requestFactory.createRequest(method: method, bodyParams: nil, url: url, header: header)
-            let data = try await performRequest(request.toURLRequest())
-            return try jsonDecoder.convertToModelArray(data)
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token:  authManager.token)
+            if let urlRequest = request.toURLRequest() {
+                let data = try await performRequest(urlRequest)
+                return try jsonDecoder.convertToModelArray(data)
+            } else {
+                throw ErrorManager.backendError(.requestFailed)
+            }
             
         } catch let error as ErrorManager {
             throw error
@@ -45,9 +50,13 @@ struct WebManager: WebManagerProtocol {
 
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool {
         do {
-            let request = try requestFactory.createRequest(method: method, bodyParams: bodyParams, url: url, header: header)
-            let _ = try await performRequest(request.toURLRequest())
-            return true
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: url, header: header, token:  authManager.token)
+            if let urlRequest = request.toURLRequest() {
+                let _ = try await performRequest(urlRequest)
+                return true
+            } else {
+                throw ErrorManager.backendError(.requestFailed)
+            }
             
         } catch let error as ErrorManager {
             throw error

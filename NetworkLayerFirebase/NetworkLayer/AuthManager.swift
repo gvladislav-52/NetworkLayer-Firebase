@@ -8,8 +8,7 @@
 import Foundation
 
 class AuthManager {
-    let apiKey = "AIzaSyDIyqPzgx2RPVg6JiiWPYIjsQD-_7wEVJ8"
-    
+    var token: String?
     func getAuthParameters(email: String, password: String) -> [String: Any] {
         return [
             "email": email,

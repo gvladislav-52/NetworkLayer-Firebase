@@ -8,13 +8,36 @@
 import Foundation
 
 protocol RequestFactoryProtocol {
-    func createRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String]) throws -> RequestProtocol
+    func createDataRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String], token: String?) throws -> RequestProtocol
+    func createAuthRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String]) throws -> RequestProtocol
 }
 
 struct RequestFactory: RequestFactoryProtocol {
     private let jsonEncoder = JSONConverterEncoder()
     
-    func createRequest(
+    func createDataRequest(
+        method: HTTPMethod,
+        bodyParams: [String: Any]? = nil,
+        url: URL,
+        header: [String: String],
+        token: String?
+    ) throws -> RequestProtocol {
+        do {
+            let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
+            
+            return DataRequest(
+                url: url,
+                method: method,
+                headers: header,
+                body: body,
+                token: token
+            )
+        } catch {
+            throw ErrorManager.internalError(.dataParsingFailed)
+        }
+    }
+    
+    func createAuthRequest(
         method: HTTPMethod,
         bodyParams: [String: Any]? = nil,
         url: URL,
@@ -23,11 +46,12 @@ struct RequestFactory: RequestFactoryProtocol {
         do {
             let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
             
-            return Request(
+            return AuthRequest(
                 url: url,
                 method: method,
                 headers: header,
-                body: body
+                body: body,
+                token: nil
             )
         } catch {
             throw ErrorManager.internalError(.dataParsingFailed)

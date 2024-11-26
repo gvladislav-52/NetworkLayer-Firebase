@@ -78,8 +78,8 @@ extension TestMVPViewController: TestMVPViewDelegate {
                       let password = view.passwordTextField.text else {
                     return
                 }
-                let token = try await service.getAuthToken(email: login, password: password)
-                print("Авторизация успешна. Токен: \(token)")
+                try await service.getAuthToken(email: login, password: password)
+                print("Авторизация успешна")
             } catch {
                 print("Ошибка авторизации: \(error.localizedDescription)")
             }
