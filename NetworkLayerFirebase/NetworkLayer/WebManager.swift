@@ -22,14 +22,15 @@ struct WebManager: WebManagerProtocol {
     func getToken(email: String, password: String, url: URL, header: [String: String]) async throws {
         let authParameters = authManager.getAuthParameters(email: email, password: password)
         let request = try requestFactory.createAuthRequest(method: .post, bodyParams: authParameters, url: url, header: header)
-            let data = try await performRequest(request.toURLRequest())
-            let authResponse = try JSONDecoder().decode(AuthRepository.self, from: data)
-            authManager.token = authResponse.idToken
-    }
 
+        let data = try await performRequest(request.toURLRequest())
+        let authResponse = try jsonDecoder.decode(data, to: AuthRepository.self)
+        authManager.cacheToken(result: authResponse)
+    }
+    
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T] {
         do {
-            guard let token = authManager.token else {
+            guard let token = authManager.getAccessToken() else {
                 throw ErrorManager.backendError(.requestFailed)
             }
             let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token: token)
@@ -44,7 +45,7 @@ struct WebManager: WebManagerProtocol {
 
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool {
         do {
-            guard let token = authManager.token else {
+            guard let token = authManager.getAccessToken() else {
                 throw ErrorManager.backendError(.requestFailed)
             }
             let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: url, header: header, token:  token)

@@ -8,9 +8,7 @@
 import Foundation
 
 struct AuthRepository: Decodable {
-    let idToken: String
-    let email: String
-    let refreshToken: String
-    let expiresIn: String
-    let localId: String
+    var idToken: String
+    var refreshToken: String
+    var expiresIn: String
 }

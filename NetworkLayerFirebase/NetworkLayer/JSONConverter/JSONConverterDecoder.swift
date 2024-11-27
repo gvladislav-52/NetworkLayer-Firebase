@@ -8,8 +8,9 @@
 import Foundation
 
 struct JSONConverterDecoder {
+    private let decoder = JSONDecoder()
+    
     func convertToModelArray<T: Decodable>(_ data: Data) throws -> [T] {
-        let decoder = JSONDecoder()
         guard let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw ErrorManager.backendError(.dataParsingFailed)
         }
@@ -27,5 +28,15 @@ struct JSONConverterDecoder {
             return try decoder.decode(T.self, from: jsonData)
         }
     }
+    
+    func decode<T: Decodable>(_ data: Data, to type: T.Type) throws -> T {
+            do {
+                let decodedResponse = try decoder.decode(T.self, from: data)
+                return decodedResponse
+            } catch {
+                throw ErrorManager.backendError(.dataParsingFailed)
+            }
+        }
+
 }
 
