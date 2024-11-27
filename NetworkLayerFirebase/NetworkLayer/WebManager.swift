@@ -22,25 +22,19 @@ struct WebManager: WebManagerProtocol {
     func getToken(email: String, password: String, url: URL, header: [String: String]) async throws {
         let authParameters = authManager.getAuthParameters(email: email, password: password)
         let request = try requestFactory.createAuthRequest(method: .post, bodyParams: authParameters, url: url, header: header)
-        if let urlRequest = request.toURLRequest() {
-            let data = try await performRequest(urlRequest)
+            let data = try await performRequest(request.toURLRequest())
             let authResponse = try JSONDecoder().decode(AuthRepository.self, from: data)
             authManager.token = authResponse.idToken
-        } else {
-            throw ErrorManager.backendError(.requestFailed)
-        }
     }
 
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T] {
         do {
-            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token:  authManager.token)
-            if let urlRequest = request.toURLRequest() {
-                let data = try await performRequest(urlRequest)
-                return try jsonDecoder.convertToModelArray(data)
-            } else {
+            guard let token = authManager.token else {
                 throw ErrorManager.backendError(.requestFailed)
             }
-            
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token: token)
+                let data = try await performRequest(request.toURLRequest())
+                return try jsonDecoder.convertToModelArray(data)
         } catch let error as ErrorManager {
             throw error
         } catch {
@@ -50,14 +44,12 @@ struct WebManager: WebManagerProtocol {
 
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool {
         do {
-            let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: url, header: header, token:  authManager.token)
-            if let urlRequest = request.toURLRequest() {
-                let _ = try await performRequest(urlRequest)
-                return true
-            } else {
+            guard let token = authManager.token else {
                 throw ErrorManager.backendError(.requestFailed)
             }
-            
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: url, header: header, token:  token)
+                let _ = try await performRequest(request.toURLRequest())
+                return true
         } catch let error as ErrorManager {
             throw error
         } catch {

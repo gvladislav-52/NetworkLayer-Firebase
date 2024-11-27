@@ -8,8 +8,8 @@
 import Foundation
 
 protocol RequestFactoryProtocol {
-    func createDataRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String], token: String?) throws -> RequestProtocol
-    func createAuthRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String]) throws -> RequestProtocol
+    func createDataRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String], token: String) throws -> DataRequestProtocol
+    func createAuthRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String]) throws -> AuthRequestProtocol
 }
 
 struct RequestFactory: RequestFactoryProtocol {
@@ -20,8 +20,8 @@ struct RequestFactory: RequestFactoryProtocol {
         bodyParams: [String: Any]? = nil,
         url: URL,
         header: [String: String],
-        token: String?
-    ) throws -> RequestProtocol {
+        token: String
+    ) throws -> DataRequestProtocol {
         do {
             let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
             
@@ -42,7 +42,7 @@ struct RequestFactory: RequestFactoryProtocol {
         bodyParams: [String: Any]? = nil,
         url: URL,
         header: [String: String]
-    ) throws -> RequestProtocol {
+    ) throws -> AuthRequestProtocol {
         do {
             let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
             
@@ -50,8 +50,7 @@ struct RequestFactory: RequestFactoryProtocol {
                 url: url,
                 method: method,
                 headers: header,
-                body: body,
-                token: nil
+                body: body
             )
         } catch {
             throw ErrorManager.internalError(.dataParsingFailed)
