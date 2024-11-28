@@ -95,21 +95,27 @@ extension TestMVPViewController: TestMVPViewDelegate {
             do {
                 let userInfos = try await service.fetchData(method: .get)
                 
-                for userInfo in userInfos {
-                    print("Name: \(userInfo.name), Age: \(userInfo.age), Email: \(userInfo.email)")
+                for document in userInfos.documents {
+                        print("Name: \(document.fields.name.stringValue), Age: \(document.fields.age.stringValue), Email: \(document.fields.email.stringValue)")
                 }
             } catch let error as NSError {
                 print("Error fetching user data: \(error.localizedDescription)")
             }
         }
     }
-
+    
     func testViewDidTapPost(_ view: TestMVPView) {
+        let ageValue = StringValue(stringValue: "30")
+        let emailValue = StringValue(stringValue: "user@example.com")
+        let nameValue = StringValue(stringValue: "John Doe")
+        let fields = Fields(age: ageValue, email: emailValue, name: nameValue)
+        let document = Document(name: "test_document_1", fields: fields)
+        let firebaseResponse = TestModel(documents: [document])
+
         Task {
             do {
-                let userInfo = UserInfo(name: "Vladik666", age: "10", email: "po4ta")
-                let success = try await service.createUser(method: .post, model: userInfo)
-                
+                let success = try await service.createUser(method: .post, model: firebaseResponse)
+
                 if success {
                     print("User successfully created")
                 } else {

@@ -7,8 +7,21 @@
 
 import Foundation
 
-struct UserInfo: Decodable {
+struct TestModel: Codable {
+    let documents: [Document]
+}
+
+struct Document: Codable {
     let name: String
-    let age: String
-    let email: String
+    let fields: Fields
+}
+
+struct Fields: Codable {
+    let age: StringValue
+    let email: StringValue
+    let name: StringValue
+}
+
+struct StringValue: Codable {
+    let stringValue: String
 }

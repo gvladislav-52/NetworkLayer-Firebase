@@ -8,7 +8,7 @@
 import Foundation
 
 protocol WebManagerProtocol {
-    func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T]
+    func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> T
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool
     func getToken(email: String, password: String, url: URL, header: [String: String]) async throws
 }
@@ -17,29 +17,28 @@ struct WebManager: WebManagerProtocol {
     static let shared = WebManager()
     private let requestFactory: RequestFactoryProtocol = RequestFactory()
     private let authManager = AuthManager()
-    private let jsonDecoder = JSONConverterDecoder()
+    private let jsonDecoder: JSONConverterDecoderProtocol = JSONConverterDecoder()
     
     func getToken(email: String, password: String, url: URL, header: [String: String]) async throws {
         let authParameters = authManager.getAuthParameters(email: email, password: password)
         let request = try requestFactory.createAuthRequest(method: .post, bodyParams: authParameters, url: url, header: header)
 
         let data = try await performRequest(request.toURLRequest())
-        let authResponse = try jsonDecoder.decode(data, to: AuthRepository.self)
+        let authResponse: AuthRepository = try jsonDecoder.decode(data)
         authManager.cacheToken(result: authResponse)
     }
-    
-    func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> [T] {
+        
+    func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> T {
         do {
-            guard let token = authManager.getAccessToken() else {
-                throw ErrorManager.backendError(.requestFailed)
-            }
-            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token: token)
-                let data = try await performRequest(request.toURLRequest())
-                return try jsonDecoder.convertToModelArray(data)
-        } catch let error as ErrorManager {
-            throw error
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token: authManager.getAccessToken() ?? "")
+            
+            let data = try await performRequest(request.toURLRequest())
+
+            let decodedResponse: T = try jsonDecoder.decode(data)
+            return decodedResponse
         } catch {
-            throw ErrorManager.backendError(.dataParsingFailed)
+            print("Failed to fetch data: \(error.localizedDescription)")
+            throw error
         }
     }
 

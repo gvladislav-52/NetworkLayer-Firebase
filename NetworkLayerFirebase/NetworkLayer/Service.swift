@@ -8,10 +8,10 @@
 import Foundation
 
 protocol ServiceProtocol {
-    func fetchData(method: HTTPMethod) async throws -> [UserInfo]
-    func createUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
-    func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
-    func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool
+    func fetchData(method: HTTPMethod) async throws -> TestModel
+    func createUser(method: HTTPMethod, model: TestModel) async throws -> Bool
+    func updateUser(method: HTTPMethod, model: TestModel) async throws -> Bool
+    func deleteUser(method: HTTPMethod, model: TestModel) async throws -> Bool
     
     func getAuthToken(email: String, password: String) async throws
 }
@@ -19,7 +19,7 @@ protocol ServiceProtocol {
 struct Service: ServiceProtocol {
     private let environment = Environment()
     
-    func fetchData(method: HTTPMethod) async throws -> [UserInfo] {
+    func fetchData(method: HTTPMethod) async throws -> TestModel {
         do {
             return try await WebManager.shared.fetchData(
                 method: method,
@@ -33,12 +33,12 @@ struct Service: ServiceProtocol {
         }
     }
 
-    func createUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
+    func createUser(method: HTTPMethod, model: TestModel) async throws -> Bool {
         let bodyParams: [String: Any] = [
             "fields": [
-                "name": ["stringValue": model.name],
-                "age": ["stringValue": model.age],
-                "email": ["stringValue": model.email]
+                "name": ["stringValue": "model.name"],
+                "age": ["stringValue": "model.age"],
+                "email": ["stringValue": "model.email"]
             ]
         ]
         
@@ -56,11 +56,11 @@ struct Service: ServiceProtocol {
         }
     }
     
-    func updateUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
+    func updateUser(method: HTTPMethod, model: TestModel) async throws -> Bool {
         true
     }
     
-    func deleteUser(method: HTTPMethod, model: UserInfo) async throws -> Bool {
+    func deleteUser(method: HTTPMethod, model: TestModel) async throws -> Bool {
         true
     }
     

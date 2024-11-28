@@ -13,8 +13,8 @@ struct Environment {
     let authURL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
     
     func url() -> URL {
-        guard let url = URL(string: "\(baseURL)/users") else {
-            fatalError("Invalid URL: \(baseURL)/users")
+        guard let url = URL(string: "\(baseURL)/users2") else {
+            fatalError("Invalid URL: \(baseURL)/users2")
         }
         return url
     }
