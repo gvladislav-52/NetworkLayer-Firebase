@@ -1,11 +1,6 @@
-//
-//  WebManager.swift
-//  NetworkLayerFirebase
-//
-//  Created by gvladislav-52 on 21.11.2024.
-//
-
 import Foundation
+
+// MARK: - WebManagerProtocol
 
 protocol WebManagerProtocol {
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> T
@@ -13,27 +8,29 @@ protocol WebManagerProtocol {
     func getToken(email: String, password: String, url: URL, header: [String: String]) async throws
 }
 
+// MARK: - WebManager
+
 struct WebManager: WebManagerProtocol {
     static let shared = WebManager()
     private let requestFactory: RequestFactoryProtocol = RequestFactory()
     private let authManager = AuthManager()
     private let jsonDecoder: JSONConverterDecoderProtocol = JSONConverterDecoder()
     
-    func getToken(email: String, password: String, url: URL, header: [String: String]) async throws {
-        let authParameters = authManager.getAuthParameters(email: email, password: password)
-        let request = try requestFactory.createAuthRequest(method: .post, bodyParams: authParameters, url: url, header: header)
-
-        let data = try await performRequest(request.toURLRequest())
-        let authResponse: AuthRepository = try jsonDecoder.decode(data)
-        authManager.cacheToken(result: authResponse)
-    }
-        
     func fetchData<T: Decodable>(method: HTTPMethod, url: URL, header: [String: String]) async throws -> T {
         do {
-            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header, token: authManager.getAccessToken() ?? "")
+            if authManager.isTokenExpired() {
+                try await refreshAccessToken(url: url, header: header)
+            }
             
-            let data = try await performRequest(request.toURLRequest())
-
+            guard let token = authManager.getAccessToken() else {
+                throw ErrorManager.backendError(.dataParsingFailed)
+            }
+            
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: url, header: header)
+            var response = request.toURLRequest()
+            response.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            
+            let data = try await performRequest(response)
             let decodedResponse: T = try jsonDecoder.decode(data)
             return decodedResponse
         } catch {
@@ -42,14 +39,39 @@ struct WebManager: WebManagerProtocol {
         }
     }
 
+    func refreshAccessToken(url: URL, header: [String: String]) async throws {
+        let refreshRequest = try requestFactory.createDataRequest(
+            method: .post,
+            bodyParams: authManager.refreshAceessToken(),
+            url: url,
+            header: header
+        )
+        
+        let data = try await performRequest(refreshRequest.toURLRequest())
+        let refreshResponse: AuthRepository = try jsonDecoder.decode(data)
+        
+        authManager.cacheToken(result: refreshResponse)
+    }
+
+    func getToken(email: String, password: String, url: URL, header: [String: String]) async throws {
+        let authParameters = authManager.getAuthParameters(email: email, password: password)
+        let request = try requestFactory.createDataRequest(method: .post, bodyParams: authParameters, url: url, header: header)
+
+        let data = try await performRequest(request.toURLRequest())
+        let authResponse: AuthRepository = try jsonDecoder.decode(data)
+        authManager.cacheToken(result: authResponse)
+    }
+        
     func createUser(method: HTTPMethod, bodyParams: [String: Any], url: URL, header: [String: String]) async throws -> Bool {
         do {
             guard let token = authManager.getAccessToken() else {
-                throw ErrorManager.backendError(.requestFailed)
+                throw ErrorManager.backendError(.dataParsingFailed)
             }
-            let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: url, header: header, token:  token)
-                let _ = try await performRequest(request.toURLRequest())
-                return true
+            let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: url, header: header)
+            var response = request.toURLRequest()
+            response.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            let _ = try await performRequest(response)
+            return true
         } catch let error as ErrorManager {
             throw error
         } catch {
@@ -57,6 +79,8 @@ struct WebManager: WebManagerProtocol {
         }
     }
 }
+
+// MARK: - Private Extension
 
 private extension WebManager {
     func performRequest(_ urlRequest: URLRequest) async throws -> Data {

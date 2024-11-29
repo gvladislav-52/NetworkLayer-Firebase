@@ -96,7 +96,7 @@ extension TestMVPViewController: TestMVPViewDelegate {
                 let userInfos = try await service.fetchData(method: .get)
                 
                 for document in userInfos.documents {
-                        print("Name: \(document.fields.name.stringValue), Age: \(document.fields.age.stringValue), Email: \(document.fields.email.stringValue)")
+                    print(document.fields)
                 }
             } catch let error as NSError {
                 print("Error fetching user data: \(error.localizedDescription)")
