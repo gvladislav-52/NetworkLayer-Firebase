@@ -1,5 +1,5 @@
 {
-  "originHash" : "c63c63846d9c539229e96de38d6af51417e28c0ee9a0bc48bd0f0f19d923c329",
+  "originHash" : "5d72f2abdcb4a7d5299a42cf3d3812f100e133b7fd2b079edf0dba156d2e7af2",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -107,6 +107,15 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "route-composer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ekazaev/route-composer.git",
+      "state" : {
+        "revision" : "54f23cdd9b56099a5c2e27b1a8b475a0ee702833",
+        "version" : "2.10.5"
       }
     },
     {

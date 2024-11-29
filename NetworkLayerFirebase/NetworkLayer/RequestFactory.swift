@@ -6,3 +6,31 @@
 //
 
 import Foundation
+
+protocol RequestFactoryProtocol {
+    func createDataRequest(method: HTTPMethod, bodyParams: [String: Any]?, url: URL, header: [String: String]) throws -> RequestProtocol
+}
+
+struct RequestFactory: RequestFactoryProtocol {    
+    private let jsonEncoder = JSONConverterEncoder()
+    
+    func createDataRequest(
+        method: HTTPMethod,
+        bodyParams: [String: Any]? = nil,
+        url: URL,
+        header: [String: String]
+    ) throws -> RequestProtocol {
+        do {
+        let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
+            
+            return Request(
+                url: url,
+                method: method,
+                headers: header,
+                body: body
+            )
+        } catch {
+            throw ErrorManager.internalError(.requestCreationFailed)
+        }
+    }
+}
