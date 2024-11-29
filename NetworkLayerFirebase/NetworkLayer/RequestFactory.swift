@@ -21,7 +21,7 @@ struct RequestFactory: RequestFactoryProtocol {
         header: [String: String]
     ) throws -> RequestProtocol {
         do {
-            let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
+        let body: Data? = try bodyParams.map { try jsonEncoder.convertToJSON(data: $0) }
             
             return Request(
                 url: url,
@@ -30,7 +30,7 @@ struct RequestFactory: RequestFactoryProtocol {
                 body: body
             )
         } catch {
-            throw ErrorManager.internalError(.dataParsingFailed)
+            throw ErrorManager.internalError(.requestCreationFailed)
         }
     }
 }

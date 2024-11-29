@@ -7,7 +7,7 @@
 
 import Foundation
 
-class AuthRepository {
+struct AuthRepository {
     private let accessTokenKey = "accessToken"
     private let refreshTokenKey = "refreshToken"
     private let expiresInKey = "expiresIn"

@@ -18,8 +18,7 @@ struct JSONConverterDecoder: JSONConverterDecoderProtocol {
         do {
             return try jsonDecoder.decode(T.self, from: data)
         } catch {
-            print("Decoding error: \(error.localizedDescription)")
-            throw ErrorManager.backendError(.dataParsingFailed)
+            throw ErrorManager.internalError(.dataParsingFailed)
         }
     }
 }

@@ -98,8 +98,8 @@ extension TestMVPViewController: TestMVPViewDelegate {
                 for document in userInfos.documents {
                     print(document.fields)
                 }
-            } catch let error as NSError {
-                print("Error fetching user data: \(error.localizedDescription)")
+            } catch let error as ErrorManager {
+                print(error.localizedDescription)
             }
         }
     }
@@ -121,8 +121,8 @@ extension TestMVPViewController: TestMVPViewDelegate {
                 } else {
                     print("Failed to create user")
                 }
-            } catch let error as NSError {
-                print("Error creating user: \(error.localizedDescription)")
+            } catch let error as ErrorManager {
+                print(error.localizedDescription)
             }
         }
     }

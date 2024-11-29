@@ -12,7 +12,7 @@ struct JSONConverterEncoder {
         do {
             return try JSONSerialization.data(withJSONObject: data, options: [])
         } catch {
-            throw ErrorManager.internalError(.dataParsingFailed)
+            throw ErrorManager.internalError(.dataSerializationFailed)
         }
     }
 }

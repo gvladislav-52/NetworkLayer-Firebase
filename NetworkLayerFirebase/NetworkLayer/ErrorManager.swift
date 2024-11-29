@@ -8,20 +8,18 @@
 import Foundation
 
 enum ErrorManager: Error {
-    case backendError(APIError)
+    case authenticationError(APIError)
     case internalError(APIError)
-    case unknownError(APIError)
+    case networkError(APIError)
     
     var localizedDescription: String {
         switch self {
-        case .backendError(let type):
-            return "Backend Error: \(type.localizedDescription)"
+        case .authenticationError(let type):
+            return "Ошибка аутентификации: \(type.localizedDescription)"
         case .internalError(let type):
-            return "Internal Error: \(type.localizedDescription)"
-        case .unknownError(let type):
-            return "Unknown Error: \(type.localizedDescription)"
+            return "Ошибка запроса: \(type.localizedDescription)"
+        case .networkError(let type):
+            return "Ошибка сети: \(type.localizedDescription)"
         }
     }
 }
-
-

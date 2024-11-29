@@ -24,10 +24,8 @@ struct Service: ServiceProtocol {
                 endPoint: .home,
                 header: ["Content-Type": "application/json", "Accept": "application/json"]
             )
-        } catch let error as ErrorManager {
+        } catch  {
             throw error
-        } catch {
-            throw ErrorManager.unknownError(.requestFailed)
         }
     }
 
@@ -47,10 +45,8 @@ struct Service: ServiceProtocol {
                 endPoint: .home,
                 header: ["Content-Type": "application/json", "Accept": "application/json"]
             )
-        } catch let error as ErrorManager {
+        } catch  {
             throw error
-        } catch {
-            throw ErrorManager.unknownError(.requestFailed)
         }
     }
     
@@ -69,10 +65,8 @@ struct Service: ServiceProtocol {
             password: password,
             header: ["Content-Type": "application/json"]
         )
-        } catch let error as ErrorManager {
+        } catch  {
             throw error
-        } catch {
-            throw ErrorManager.unknownError(.requestFailed)
         }
     }
 }
