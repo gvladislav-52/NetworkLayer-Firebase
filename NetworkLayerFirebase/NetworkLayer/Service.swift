@@ -16,14 +16,12 @@ protocol ServiceProtocol {
     func getAuthToken(email: String, password: String) async throws
 }
 
-struct Service: ServiceProtocol {
-    private let environment = Environment()
-    
+struct Service: ServiceProtocol {    
     func fetchData(method: HTTPMethod) async throws -> TestModel {
         do {
             return try await WebManager.shared.fetchData(
                 method: method,
-                url: environment.url(),
+                endPoint: .home,
                 header: ["Content-Type": "application/json", "Accept": "application/json"]
             )
         } catch let error as ErrorManager {
@@ -46,7 +44,7 @@ struct Service: ServiceProtocol {
             return try await WebManager.shared.createUser(
                 method: method,
                 bodyParams: bodyParams,
-                url: environment.url(),
+                endPoint: .home,
                 header: ["Content-Type": "application/json", "Accept": "application/json"]
             )
         } catch let error as ErrorManager {
@@ -69,7 +67,6 @@ struct Service: ServiceProtocol {
         return try await WebManager.shared.getToken(
             email: email,
             password: password,
-            url: environment.authUrl(),
             header: ["Content-Type": "application/json"]
         )
         } catch let error as ErrorManager {

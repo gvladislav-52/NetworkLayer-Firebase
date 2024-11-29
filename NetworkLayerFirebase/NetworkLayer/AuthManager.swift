@@ -35,6 +35,17 @@ struct AuthManager {
         }
     }
     
+    func cacheToken(result: AuthResponse) {
+        UserDefaults.standard.setValue(result.idToken, forKey: accessToken)
+        UserDefaults.standard.setValue(result.refreshToken, forKey: refreshToken)
+        
+        if let expiresInSeconds = Double(result.expiresIn) {
+            let expirationDate = Date().addingTimeInterval(expiresInSeconds)
+            let isoFormatter = ISO8601DateFormatter()
+            UserDefaults.standard.setValue(isoFormatter.string(from: expirationDate), forKey: expiresIn)
+        }
+    }
+    
     func isTokenExpired() -> Bool {
         guard let expiresIn = getExpiresInToken(),
               let expirationDate = ISO8601DateFormatter().date(from: expiresIn) else {
@@ -43,10 +54,13 @@ struct AuthManager {
         return Date() >= expirationDate
     }
     
-    func refreshAceessToken() -> [String: Any] {
+    func refreshAceessToken() -> [String: Any]? {
+        guard let refreshToken = getRefreshToken() else {
+                return nil
+            }
         return [
             "grant_type": "refresh_token",
-            "refresh_token": refreshToken
+            "refresh_token": getRefreshToken()!
         ]
     }
 
