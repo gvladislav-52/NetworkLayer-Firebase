@@ -8,7 +8,7 @@
 import Foundation
 
 struct Environment {
-    private let API_KEY = "AIzaSyDIyqPzgx2RPVg6JiiWPYIjsQD-_7wEVJ8"
+    private let API_KEY: String = "" ///"AIzaSyDIyqPzgx2RPVg6JiiWPYIjsQD-_7wEVJ8"
     private let databaseURL = "https://firestore.googleapis.com/v1/projects/myreportal/databases/(default)/documents/"
     private let authURL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
     private let refreshAuthURL = "https://securetoken.googleapis.com/v1/token?key="
