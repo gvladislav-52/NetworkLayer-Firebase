@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		662A635A2CFA1E650037BD8F /* AuthModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662A63592CFA1E650037BD8F /* AuthModel.swift */; };
 		66B1CD172CEB7503007C738D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B1CD162CEB7503007C738D /* AppDelegate.swift */; };
 		66B1CD192CEB7503007C738D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B1CD182CEB7503007C738D /* SceneDelegate.swift */; };
 		66B1CD202CEB7504007C738D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66B1CD1F2CEB7504007C738D /* Assets.xcassets */; };
@@ -41,6 +42,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		662A63592CFA1E650037BD8F /* AuthModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModel.swift; sourceTree = "<group>"; };
 		66B1CD132CEB7503007C738D /* NetworkLayerFirebase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NetworkLayerFirebase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B1CD162CEB7503007C738D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		66B1CD182CEB7503007C738D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -125,6 +127,7 @@
 				66B1CD2B2CEB771A007C738D /* WebManager.swift */,
 				66B1CD2D2CEB7723007C738D /* AuthManager.swift */,
 				66B1CD2F2CEB7730007C738D /* AuthRepository.swift */,
+				662A63592CFA1E650037BD8F /* AuthModel.swift */,
 				66B1CD312CEB7736007C738D /* Service.swift */,
 				66B1CD332CEB774F007C738D /* Model.swift */,
 				66B1CD352CEB7759007C738D /* Method.swift */,
@@ -263,6 +266,7 @@
 				66B1CD342CEB774F007C738D /* Model.swift in Sources */,
 				66B1CD362CEB7759007C738D /* Method.swift in Sources */,
 				66B1CD3E2CEB77B3007C738D /* APIError.swift in Sources */,
+				662A635A2CFA1E650037BD8F /* AuthModel.swift in Sources */,
 				66B1CD422CEB77D2007C738D /* JSONConverterDecoder.swift in Sources */,
 				66D68A512CF1FCB600049EC1 /* JSONConverterEncoder.swift in Sources */,
 			);

@@ -23,7 +23,7 @@ struct WebManager: WebManagerProtocol {
                 try await refreshAccessToken(header: header)
             }
 
-            guard let token = authManager.getAccessToken() else {
+            guard let token = authManager.accessToken else {
                 throw ErrorManager.backendError(.dataParsingFailed)
             }
             let request = try requestFactory.createDataRequest(method: method, bodyParams: nil, url: environment.getDatabaseURL(endPoint: endPoint), header: header)
@@ -42,28 +42,28 @@ struct WebManager: WebManagerProtocol {
     func refreshAccessToken(header: [String: String]) async throws {
         let refreshRequest = try requestFactory.createDataRequest(
             method: .post,
-            bodyParams: authManager.refreshAceessToken(),
+            bodyParams: authManager.refreshTokenRequestBody(),
             url: environment.getRefreshAuthURL(),
             header: header
         )
         
         let data = try await performRequest(refreshRequest.toURLRequest())
-        let refreshResponse: AuthResponse = try jsonDecoder.decode(data)
-        authManager.cacheToken(result: refreshResponse)
+        let refreshResponse: RefreshAuthResponse = try jsonDecoder.decode(data)
+        authManager.cacheToken(from: refreshResponse)
     }
 
     func getToken(email: String, password: String, header: [String: String]) async throws {
-        let authParameters = authManager.getAuthParameters(email: email, password: password)
+        let authParameters = authManager.accessTokenRequestBody(email: email, password: password)
         let request = try requestFactory.createDataRequest(method: .post, bodyParams: authParameters, url: environment.getAuthURL(), header: header)
         let data = try await performRequest(request.toURLRequest())
-        let authResponse: AuthRepository = try jsonDecoder.decode(data)
+        let authResponse: AuthResponse = try jsonDecoder.decode(data)
         print(authResponse)
-        authManager.cacheToken(result: authResponse)
+        authManager.cacheToken(from: authResponse)
     }
         
     func createUser(method: HTTPMethod, bodyParams: [String: Any], endPoint: EnvironmentEndPoint, header: [String: String]) async throws -> Bool {
         do {
-            guard let token = authManager.getAccessToken() else {
+            guard let token = authManager.accessToken else {
                 throw ErrorManager.backendError(.dataParsingFailed)
             }
             let request = try requestFactory.createDataRequest(method: method, bodyParams: bodyParams, url: environment.getDatabaseURL(endPoint: endPoint), header: header)
@@ -78,7 +78,6 @@ struct WebManager: WebManagerProtocol {
             throw ErrorManager.backendError(.requestFailed)
         }
     }
-
 }
 
 // MARK: - Private Extension

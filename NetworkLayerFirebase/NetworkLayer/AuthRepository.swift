@@ -7,30 +7,40 @@
 
 import Foundation
 
-struct AuthRepository: Decodable {
-    var idToken: String
-    var refreshToken: String
-    var expiresIn: String
-}
-
-import Foundation
-
-struct AuthResponse: Codable {
-    let accessToken: String
-    let expiresIn: String
-    let tokenType: String
-    let refreshToken: String
-    let idToken: String
-    let userId: String
-    let projectId: String
+class AuthRepository {
+    private let accessTokenKey = "accessToken"
+    private let refreshTokenKey = "refreshToken"
+    private let expiresInKey = "expiresIn"
     
-    enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-        case expiresIn = "expires_in"
-        case tokenType = "token_type"
-        case refreshToken = "refresh_token"
-        case idToken = "id_token"
-        case userId = "user_id"
-        case projectId = "project_id"
+    func getAccessToken() -> String? {
+        return UserDefaults.standard.string(forKey: accessTokenKey)
+    }
+    
+    func getRefreshToken() -> String? {
+        return UserDefaults.standard.string(forKey: refreshTokenKey)
+    }
+    
+    func getExpirationDate() -> Date? {
+        guard let expiresInString = UserDefaults.standard.string(forKey: expiresInKey) else {
+            return nil
+        }
+        return ISO8601DateFormatter().date(from: expiresInString)
+    }
+    
+    func saveToken(accessToken: String, refreshToken: String, expiresIn: String) {
+        UserDefaults.standard.setValue(accessToken, forKey: accessTokenKey)
+        UserDefaults.standard.setValue(refreshToken, forKey: refreshTokenKey)
+        
+        if let expiresInSeconds = Double(expiresIn) {
+            let expirationDate = Date().addingTimeInterval(expiresInSeconds)
+            let isoFormatter = ISO8601DateFormatter()
+            UserDefaults.standard.setValue(isoFormatter.string(from: expirationDate), forKey: expiresInKey)
+        }
+    }
+    
+    func clearTokens() {
+        UserDefaults.standard.removeObject(forKey: accessTokenKey)
+        UserDefaults.standard.removeObject(forKey: refreshTokenKey)
+        UserDefaults.standard.removeObject(forKey: expiresInKey)
     }
 }
